@@ -4,7 +4,7 @@ import React from 'react'
 export default function Home() {
   return (
     <div className='px-6 py-4'>
-      Start chat now..
+    Start chat
     </div>
   )
 }

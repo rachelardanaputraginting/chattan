@@ -23,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        // Mengambil nilai timezone
+        $timezone = config('app.timezone');
+
+        // Mengatur nilai timezone
+        config(['app.timezone' => 'Asia/Jakarta']);
     }
 }

@@ -35,7 +35,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            "users" => fn () => User::where('id', '!=', $request->user()->id)->get(),
+            "users" => fn () => $request->user() ? User::where('id', '!=', $request->user()->id)->get() : null,
             'ziggy' => function () use ($request) {
                 return array_merge((new Ziggy)->toArray(), [
                     'location' => $request->url(),

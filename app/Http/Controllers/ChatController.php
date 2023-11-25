@@ -2,87 +2,51 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\Chat;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(User $user)
+    public function store(Request $request, User $user)
     {
-        dd($user);
+
+        $timestamp = Carbon::now('Asia/Jakarta');
+
+        // Membuat objek Carbon dari timestamp
+        $carbon = Carbon::parse($timestamp);
+
+        $request->validate([
+            "message" => ['required'],
+        ]);
+
+        $chat = Auth::user()->chats()->create([
+            "message" => $request->message,
+            "receiver_id" => $user->id,
+            "created_at" => $carbon,
+        ]);
+
+        broadcast(new MessageSent($chat))->toOthers();
+
+        return back();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Chat  $chat
-     * @return \Illuminate\Http\Response
-     */
     public function show(User $user)
     {
+
+        $chats = Chat::where(
+            fn ($q) => $q->where('sender_id', Auth::id())->where('receiver_id', $user->id)
+        )->orWhere(
+            fn ($q) => $q->where('sender_id', $user->id)->where('receiver_id', Auth::id())
+        )->get();
+
+
         return inertia('Chats/Show', [
-            "user" => $user
+            "user" => $user,
+            "chats" => $chats
         ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Chat  $chat
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Chat $chat)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Chat  $chat
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Chat $chat)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Chat  $chat
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Chat $chat)
-    {
-        //
     }
 }
